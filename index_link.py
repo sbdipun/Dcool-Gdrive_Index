@@ -3,7 +3,7 @@ from flask import Flask, request, jsonify
 app = Flask(__name__)
 
 # Replace with your custom domain or base URL
-BASE_INDEX_URL = ""
+BASE_INDEX_URL = "https://dcool-gdrive-index.vercel.app/"
 
 @app.route("/direct", methods=["GET"])
 def generate_index_link():
