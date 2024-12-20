@@ -4,25 +4,34 @@ from flask import Flask, request, jsonify, send_file
 
 app = Flask(__name__)
 
+# Route to handle the Google Drive file download request
 @app.route("/", methods=["GET"])
 def generate_index_link():
-    gdrive_id = request.args.get("id")  # This gets the 'id' parameter from the query string
+    gdrive_id = request.args.get("id")  # Extract Google Drive file ID from the query parameters
 
     if not gdrive_id:
         return jsonify({"error": "Missing 'id' parameter"}), 400
 
-    # Construct the Google Drive file URL
+    # Construct the Google Drive file URL for direct download
     gdrive_url = f"https://drive.google.com/uc?export=download&id={gdrive_id}"
 
     try:
         # Fetch the file from Google Drive
         response = requests.get(gdrive_url, stream=True)
 
+        # Check if the file download was successful
         if response.status_code == 200:
-            # Get the file name from the Google Drive ID (or provide a custom name)
-            filename = gdrive_id + ".download"
+            # Set the filename (we can use the Google Drive ID for simplicity)
+            filename = f"{gdrive_id}.download"
 
-            # Send the file as an attachment
+            # Get the content length from the headers (file size)
+            file_size = response.headers.get('Content-Length', None)
+
+            # If file size is available, print it
+            if file_size:
+                print(f"File size: {int(file_size) / 1024:.2f} KB")
+
+            # Send the file as an attachment with the correct filename
             return send_file(
                 response.raw,
                 as_attachment=True,
