@@ -10,6 +10,11 @@ const app = express();
 
 app.use(express.json());
 
+// Root Route
+app.get('/', (req, res) => {
+    res.send('Telegram Bot is running!');
+});
+
 // Set Webhook Programmatically
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${BOT_TOKEN}`;
 async function setWebhook() {
