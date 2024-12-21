@@ -4,21 +4,22 @@ const axios = require('axios');
 const express = require('express');
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
-const API_URL = 'https://teleservicesapi.vercel.app/check-phishing';
+const API_URL = 'https://teleservicesapi.vercel.app/check-phishing'; // Make sure the API URL is correct
 const bot = new TelegramBot(BOT_TOKEN);
 const app = express();
 
 app.use(express.json());
 
-// Root Route
+// Root Route to check if the bot is running
 app.get('/', (req, res) => {
     res.send('Telegram Bot is running!');
 });
 
-// Set Webhook Programmatically
+// Set Webhook Programmatically (called on server start)
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${BOT_TOKEN}`;
 async function setWebhook() {
-    const webhookUrl = `https://${process.env.VERCEL_URL}/bot${BOT_TOKEN}`;
+    const webhookUrl = `https://${process.env.VERCEL_URL}/bot${BOT_TOKEN}`; // Vercel URL is automatically populated in production
+
     try {
         const response = await axios.post(`${TELEGRAM_API_URL}/setWebhook`, {
             url: webhookUrl
@@ -33,11 +34,12 @@ async function setWebhook() {
     }
 }
 
-// Call the function when the server starts
+// Call setWebhook when the server starts
 setWebhook();
 
-// Handle Webhook
+// Handle Webhook Requests (Telegram sends updates to this endpoint)
 app.post(`/bot${BOT_TOKEN}`, (req, res) => {
+    console.log('Webhook received:', req.body);  // Debugging log
     bot.processUpdate(req.body);
     res.sendStatus(200);
 });
@@ -55,7 +57,7 @@ bot.on('message', async (msg) => {
     const chatId = msg.chat.id;
     const url = msg.text;
 
-    if (url.startsWith('/')) return;
+    if (url.startsWith('/')) return; // Ignore commands like /start
 
     try {
         console.log(`Checking URL: ${url}`); // Debugging log
@@ -80,7 +82,7 @@ bot.on('message', async (msg) => {
     }
 });
 
-// Start Express Server
+// Start Express Server on Vercel
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
