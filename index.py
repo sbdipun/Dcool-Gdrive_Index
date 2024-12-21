@@ -1,11 +1,10 @@
-import os
 import requests
 from telethon import TelegramClient, events
 
 # Your Telegram API credentials (get these from https://my.telegram.org/auth)
-API_ID = os.getenv('API_ID')  # Your API ID
-API_HASH = os.getenv('API_HASH')  # Your API Hash
-BOT_TOKEN = os.getenv('BOT_TOKEN')  # Your Bot Token
+API_ID = "7405235'  # Your API ID
+API_HASH = "5c9541eefe8452186e9649e2effc1f3f  # Your API Hash
+BOT_TOKEN = "7598711599:AAHEBdcy4de_TxbIKCOhwqiKwWSsIBw0Bd8"
 API_URL = 'https://teleservicesapi.vercel.app/check-phishing'
 
 # Set up the TelegramClient with Telethon
