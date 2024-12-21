@@ -51,12 +51,14 @@ bot.onText(/\/start/, (msg) => {
 });
 
 bot.on('message', async (msg) => {
+    console.log('Received message:', msg); // Debugging log
     const chatId = msg.chat.id;
     const url = msg.text;
 
     if (url.startsWith('/')) return;
 
     try {
+        console.log(`Checking URL: ${url}`); // Debugging log
         const response = await axios.get(API_URL, { params: { url } });
         const data = response.data;
 
@@ -73,6 +75,7 @@ bot.on('message', async (msg) => {
             bot.sendMessage(chatId, '✅ This URL seems safe!');
         }
     } catch (error) {
+        console.error('Error checking URL:', error); // Debugging log
         bot.sendMessage(chatId, '❌ Error checking the URL. Try again later.');
     }
 });
