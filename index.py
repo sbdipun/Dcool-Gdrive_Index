@@ -1,6 +1,7 @@
-import requests
 import logging
+from flask import Flask, request
 from pyrogram import Client, filters
+from pyrogram.types import Update
 
 # Your Telegram API credentials (get these from https://my.telegram.org/auth)
 API_ID = 7405235
@@ -11,15 +12,29 @@ API_URL = 'https://teleservicesapi.vercel.app/check-phishing'
 # Create the Pyrogram Client
 app = Client("bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
-# Root command: /start
+# Create Flask application
+flask_app = Flask(__name__)
+
+@flask_app.route("/", methods=["GET"])
+def home():
+    return "Telegram Bot is running!"
+
+@flask_app.route(f"/bot{BOT_TOKEN}", methods=["POST"])
+def webhook():
+    if request.method == "POST":
+        json_data = request.get_json()
+        update = Update.de_json(json_data)  # Deserialize the JSON update
+        app.process_update(update)
+        return "OK", 200
+    return "Method Not Allowed", 405
+
 @app.on_message(filters.command("start"))
 async def start(client, message):
     await message.reply_text(
         "Welcome! Send me a URL, and I will check if it’s a phishing link."
     )
 
-# URL checking logic
-@app.on_message(filters.text)
+@app.on_message(filters.text & ~filters.command())
 async def check_url(client, message):
     url = message.text
 
@@ -46,6 +61,14 @@ async def check_url(client, message):
         logging.error(f"Error: {e}")
         await message.reply_text("❌ Error checking the URL. Please try again later.")
 
-# Run the bot
+# Start Pyrogram Client
+@app.on_event("startup")
+async def startup():
+    await app.start()
+
+@app.on_event("shutdown")
+async def shutdown():
+    await app.stop()
+
 if __name__ == "__main__":
-    app.run()
+    flask_app.run(host="0.0.0.0", port=int(os.getenv("PORT", 3000)))
