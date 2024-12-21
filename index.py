@@ -9,10 +9,10 @@ from pyrogram.types import Update
 logging.basicConfig(level=logging.INFO)
 
 # Telegram API credentials
-API_ID = int(os.getenv("API_ID", 7405235))
-API_HASH = os.getenv("API_HASH", "5c9541eefe8452186e9649e2effc1f3f")
-BOT_TOKEN = os.getenv("BOT_TOKEN", "7598711599:AAHEBdcy4de_TxbIKCOhwqiKwWSsIBw0Bd8")
-API_URL = "https://teleservicesapi.vercel.app/check-phishing"
+API_ID = int(os.getenv("API_ID", 7))
+API_HASH = os.getenv("API_HASH", "")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "")
+API_URL = "
 
 # Create a temporary directory for the session file
 temp_dir = tempfile.gettempdir()
