@@ -19,7 +19,7 @@ async def start(client, message):
     )
 
 # URL checking logic
-@app.on_message(filters.text & ~filters.command)
+@app.on_message(filters.text)
 async def check_url(client, message):
     url = message.text
 
