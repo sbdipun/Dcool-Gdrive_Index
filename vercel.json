@@ -8,8 +8,8 @@
   ],
   "routes": [
     {
-      "src": "/bot(.*)",
-      "dest": "/index.py"
+      "src": "/(.*)",
+      "dest": "index.py"
     }
   ]
 }
