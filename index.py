@@ -49,7 +49,7 @@ async def start(client, message):
         "Welcome! Send me a URL, and I will check if it’s a phishing link."
     )
 
-@app.on_message(filters.text & ~filters.command())
+@app.on_message(filters.text)
 async def check_url(client, message):
     url = message.text
 
