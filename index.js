@@ -10,8 +10,26 @@ const app = express();
 
 app.use(express.json());
 
-// Set Webhook
-bot.setWebHook(`https://your-vercel-deployment-url.vercel.app/bot${BOT_TOKEN}`);
+// Set Webhook Programmatically
+const TELEGRAM_API_URL = `https://api.telegram.org/bot${BOT_TOKEN}`;
+async function setWebhook() {
+    const webhookUrl = `https://${process.env.VERCEL_URL}/bot${BOT_TOKEN}`;
+    try {
+        const response = await axios.post(`${TELEGRAM_API_URL}/setWebhook`, {
+            url: webhookUrl
+        });
+        if (response.data.ok) {
+            console.log('Webhook set successfully!');
+        } else {
+            console.error('Failed to set webhook:', response.data.description);
+        }
+    } catch (error) {
+        console.error('Error setting webhook:', error);
+    }
+}
+
+// Call the function when the server starts
+setWebhook();
 
 // Handle Webhook
 app.post(`/bot${BOT_TOKEN}`, (req, res) => {
