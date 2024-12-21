@@ -2,6 +2,7 @@ import logging
 from flask import Flask, request
 from pyrogram import Client, filters
 from pyrogram.types import Update
+from pyrogram.storage import MemoryStorage
 
 # Your Telegram API credentials (get these from https://my.telegram.org/auth)
 API_ID = 7405235
@@ -9,8 +10,14 @@ API_HASH = "5c9541eefe8452186e9649e2effc1f3f"
 BOT_TOKEN = "7598711599:AAHEBdcy4de_TxbIKCOhwqiKwWSsIBw0Bd8"
 API_URL = 'https://teleservicesapi.vercel.app/check-phishing'
 
-# Create the Pyrogram Client
-app = Client("bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
+# Create the Pyrogram Client with MemoryStorage
+app = Client(
+    "bot",
+    api_id=API_ID,
+    api_hash=API_HASH,
+    bot_token=BOT_TOKEN,
+    storage=MemoryStorage(),
+)
 
 # Create Flask application
 flask_app = Flask(__name__)
@@ -42,7 +49,7 @@ async def start(client, message):
         "Welcome! Send me a URL, and I will check if it’s a phishing link."
     )
 
-@app.on_message(filters.text)
+@app.on_message(filters.text & ~filters.command())
 async def check_url(client, message):
     url = message.text
 
