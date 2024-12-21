@@ -1,36 +1,44 @@
 import os
+import tempfile
 import logging
 from flask import Flask, request
 from pyrogram import Client, filters
 from pyrogram.types import Update
 
-# Your Telegram API credentials (get these from https://my.telegram.org/auth)
-API_ID = 7405235
-API_HASH = "5c9541eefe8452186e9649e2effc1f3f"
-BOT_TOKEN = "7598711599:AAHEBdcy4de_TxbIKCOhwqiKwWSsIBw0Bd8"
-API_URL = 'https://teleservicesapi.vercel.app/check-phishing'
-
-# Enable logging
+# Set up logging
 logging.basicConfig(level=logging.INFO)
 
-# Create the Pyrogram Client
+# Telegram API credentials
+API_ID = int(os.getenv("API_ID", 7405235))
+API_HASH = os.getenv("API_HASH", "5c9541eefe8452186e9649e2effc1f3f")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "7598711599:AAHEBdcy4de_TxbIKCOhwqiKwWSsIBw0Bd8")
+API_URL = "https://teleservicesapi.vercel.app/check-phishing"
+
+# Create a temporary directory for the session file
+temp_dir = tempfile.gettempdir()
+session_file_path = os.path.join(temp_dir, "my_bot.session")
+logging.info(f"Session file will be stored at: {session_file_path}")
+
+# Initialize the Pyrogram client
 app = Client(
     "bot",
     api_id=API_ID,
     api_hash=API_HASH,
-    bot_token=BOT_TOKEN
+    bot_token=BOT_TOKEN,
+    session_name=session_file_path,  # Specify the session file path
 )
 
-# Create Flask application
+# Initialize Flask
 flask_app = Flask(__name__)
 
-# Start the Pyrogram Client globally
+# Start the Pyrogram client
 logging.info("Starting Pyrogram client...")
 app.start()
 
-# Route for Telegram Webhook
+
+# Flask route for handling Telegram Webhook
 @flask_app.route(f"/bot{BOT_TOKEN}", methods=["POST"])
-def webhook():
+def telegram_webhook():
     json_data = request.get_json()
     try:
         app.process_update(Update.de_json(json_data))
@@ -39,32 +47,36 @@ def webhook():
         logging.error(f"Error processing update: {e}")
         return "Internal Server Error", 500
 
-# Health check route
+
+# Flask route for health check
 @flask_app.route("/", methods=["GET"])
 def home():
     return "Telegram Bot is running!"
 
-# Define Bot Handlers
+
+# Pyrogram handlers
 @app.on_message(filters.command("start"))
-async def start(client, message):
+async def start_command(client, message):
     await message.reply_text(
         "Welcome! Send me a URL, and I will check if it’s a phishing link."
     )
 
+
 @app.on_message(filters.text)
 async def check_url(client, message):
-    url = message.text
+    url = message.text.strip()
 
+    # Skip commands
     if url.startswith("/"):
         return
 
     try:
-        # Example API URL for phishing check
-        API_URL = "https://teleservicesapi.vercel.app/check-phishing"
+        # Make a request to the phishing check API
         response = await app.http.get(API_URL, params={"url": url})
         data = response.json()
 
         if data.get("result"):
+            # Phishing detected
             await message.reply_text(
                 f"⚠️ *Phishing Detected!*\n\n"
                 f"🔗 URL: {data['url']}\n"
@@ -73,20 +85,24 @@ async def check_url(client, message):
                 parse_mode="markdown",
             )
         else:
+            # Safe URL
             await message.reply_text("✅ This URL seems safe!")
     except Exception as e:
-        logging.error(f"Error: {e}")
+        logging.error(f"Error checking URL: {e}")
         await message.reply_text("❌ Error checking the URL. Please try again later.")
 
-# Stop the Pyrogram Client gracefully
+
+# Gracefully stop the Pyrogram client
 def shutdown_client():
     logging.info("Stopping Pyrogram client...")
     app.stop()
 
-# Ensure shutdown when script exits
+
+# Register shutdown handler
 import atexit
 atexit.register(shutdown_client)
 
-if __name__ == "__main__":
-    flask_app.run(host="0.0.0.0", port=int(os.getenv("PORT", 3000)))
 
+if __name__ == "__main__":
+    port = int(os.getenv("PORT", 3000))
+    flask_app.run(host="0.0.0.0", port=port)
