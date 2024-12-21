@@ -21,11 +21,10 @@ logging.info(f"Session file will be stored at: {session_file_path}")
 
 # Initialize the Pyrogram client
 app = Client(
-    "bot",
+    session_file_path,  # Use session file path as the first argument
     api_id=API_ID,
     api_hash=API_HASH,
     bot_token=BOT_TOKEN,
-    session_name=session_file_path,  # Specify the session file path
 )
 
 # Initialize Flask
