@@ -1,5 +1,6 @@
 import requests
-from telethon import TelegramClient, events
+import logging
+from pyrogram import Client, filters
 
 # Your Telegram API credentials (get these from https://my.telegram.org/auth)
 API_ID = 7405235
