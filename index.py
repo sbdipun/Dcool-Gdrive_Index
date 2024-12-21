@@ -1,8 +1,8 @@
+import os
 import logging
 from flask import Flask, request
 from pyrogram import Client, filters
 from pyrogram.types import Update
-from pyrogram.storage import MemoryStorage
 
 # Your Telegram API credentials (get these from https://my.telegram.org/auth)
 API_ID = 7405235
@@ -10,13 +10,15 @@ API_HASH = "5c9541eefe8452186e9649e2effc1f3f"
 BOT_TOKEN = "7598711599:AAHEBdcy4de_TxbIKCOhwqiKwWSsIBw0Bd8"
 API_URL = 'https://teleservicesapi.vercel.app/check-phishing'
 
-# Create the Pyrogram Client with MemoryStorage
+# Enable logging
+logging.basicConfig(level=logging.INFO)
+
+# Create the Pyrogram Client
 app = Client(
     "bot",
     api_id=API_ID,
     api_hash=API_HASH,
-    bot_token=BOT_TOKEN,
-    storage=MemoryStorage(name="memory"),
+    bot_token=BOT_TOKEN
 )
 
 # Create Flask application
@@ -87,3 +89,4 @@ atexit.register(shutdown_client)
 
 if __name__ == "__main__":
     flask_app.run(host="0.0.0.0", port=int(os.getenv("PORT", 3000)))
+
