@@ -15,19 +15,27 @@ app = Client("bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 # Create Flask application
 flask_app = Flask(__name__)
 
+# Start the Pyrogram Client globally
+logging.info("Starting Pyrogram client...")
+app.start()
+
+# Route for Telegram Webhook
+@flask_app.route(f"/bot{BOT_TOKEN}", methods=["POST"])
+def webhook():
+    json_data = request.get_json()
+    try:
+        app.process_update(Update.de_json(json_data))
+        return "OK", 200
+    except Exception as e:
+        logging.error(f"Error processing update: {e}")
+        return "Internal Server Error", 500
+
+# Health check route
 @flask_app.route("/", methods=["GET"])
 def home():
     return "Telegram Bot is running!"
 
-@flask_app.route(f"/bot{BOT_TOKEN}", methods=["POST"])
-def webhook():
-    if request.method == "POST":
-        json_data = request.get_json()
-        update = Update.de_json(json_data)  # Deserialize the JSON update
-        app.process_update(update)
-        return "OK", 200
-    return "Method Not Allowed", 405
-
+# Define Bot Handlers
 @app.on_message(filters.command("start"))
 async def start(client, message):
     await message.reply_text(
@@ -61,17 +69,14 @@ async def check_url(client, message):
         logging.error(f"Error: {e}")
         await message.reply_text("❌ Error checking the URL. Please try again later.")
 
-# Start Pyrogram Client
-# Manage Pyrogram client lifecycle
-@flask_app.before_first_request
-def start_bot():
-    logging.info("Starting Pyrogram client...")
-    app.start()
-
-@flask_app.teardown_appcontext
-def stop_bot(exception):
+# Stop the Pyrogram Client gracefully
+def shutdown_client():
     logging.info("Stopping Pyrogram client...")
     app.stop()
+
+# Ensure shutdown when script exits
+import atexit
+atexit.register(shutdown_client)
 
 if __name__ == "__main__":
     flask_app.run(host="0.0.0.0", port=int(os.getenv("PORT", 3000)))
