@@ -62,13 +62,16 @@ async def check_url(client, message):
         await message.reply_text("❌ Error checking the URL. Please try again later.")
 
 # Start Pyrogram Client
-@app.on_event("startup")
-async def startup():
-    await app.start()
+# Manage Pyrogram client lifecycle
+@flask_app.before_first_request
+def start_bot():
+    logging.info("Starting Pyrogram client...")
+    app.start()
 
-@app.on_event("shutdown")
-async def shutdown():
-    await app.stop()
+@flask_app.teardown_appcontext
+def stop_bot(exception):
+    logging.info("Stopping Pyrogram client...")
+    app.stop()
 
 if __name__ == "__main__":
     flask_app.run(host="0.0.0.0", port=int(os.getenv("PORT", 3000)))
